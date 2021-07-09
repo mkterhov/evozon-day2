@@ -11,27 +11,27 @@ E.g. File contains 8 8 1 3 8 4 0 0 0 0 0 0 0 0 0 0 8
 Output: 0 1 3 4 8
 */
 
-
+/**
+ * @throws Exception
+ */
 function getUniqueNumbers($filename): void
 {
     if (!file_exists($filename)) {
-        throw new \InvalidArgumentException("File doesn't exist");
+        throw new \Exception("File doesn't exist");
     }
-
     $stream = fopen($filename, "r");
 
-    $frequencySequence = 0b0000000000;
-    if ($stream) {
-        while (!feof($stream)) {
-            $buffer = fgetc($stream);
-            if ($buffer == ' ') {
-                continue;
-            }
-            setBit($buffer, $frequencySequence);
-        }
-        fclose($stream);
+    if (!$stream) {
+        throw new \Exception("Cant open file");
     }
-    echo sprintf('Final frequency sequence: %08b', $frequencySequence) . "\n";
+
+    $frequencySequence = 0;
+    while (false !== ($buffer = fgetc($stream))) {
+        setBit($frequencySequence, (int)$buffer);
+    }
+    fclose($stream);
+
+    echo sprintf('Final frequency sequence: %10b', $frequencySequence) . "\n";
 
     for ($i = 0; $i < 10; $i++) {
         if (isBitSet($frequencySequence, $i)) {
@@ -41,12 +41,13 @@ function getUniqueNumbers($filename): void
 }
 
 /**
- * @param $buffer
+ *
  * @param $sequence
+ * @param int $position
  */
-function setBit($buffer, &$sequence): void
+function setBit(&$sequence, int $position): void
 {
-    $sequence |= 1 << $buffer;
+    $sequence |= (1 << $position);
 }
 
 function isBitSet($num, $bit): bool
@@ -54,4 +55,8 @@ function isBitSet($num, $bit): bool
     return 1 == (($num >> $bit) & 1);
 }
 
-getUniqueNumbers("numbers.txt");
+try {
+    getUniqueNumbers("numbers.txt");
+} catch (Exception $e) {
+    echo "trouble" . PHP_EOL;
+}
